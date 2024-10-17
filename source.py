@@ -39,11 +39,9 @@ class Graph:
 def main():
     graph = Graph()
 
-    # Đọc dữ liệu từ file
     with open('input.txt', 'r') as file:
         lines = file.readlines()
 
-    # Xử lý từng dòng dữ liệu
     for line in lines:
         from_node, to_node, cost, heuristic_start, heuristic_goal = line.split()
         cost = float(cost)
@@ -54,11 +52,9 @@ def main():
         graph.set_heuristic(from_node, heuristic_start)
         graph.set_heuristic(to_node, heuristic_goal)
 
-    # Nhập đỉnh bắt đầu và đỉnh đích từ người dùng
     start = input("Nhập đỉnh bắt đầu: ")
     goal = input("Nhập đỉnh đích: ")
 
-    # Chạy thuật toán Branch and Bound
     path, cost = graph.branch_and_bound(start, goal)
 
     if path:
