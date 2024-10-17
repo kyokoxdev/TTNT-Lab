@@ -1,17 +1,20 @@
 import heapq
 
 class Graph:
-    def graph_init(self):
+    def __init__(self):
         self.graph = {}
         self.heuristic = {}
-    def add_edge(self, startpoint, endpoint, cost):
-        if startpoint not in self.graph:
-            self.graph[startpoint] = []
-        self.graph[startpoint].append((endpoint, cost))
-    def set_heuristic(self, node, value):
-        self.heuristic[node] = value
-    def bnb_algorithm(self, start, goal):
-        heap = [(self.heuristic[start], start, [start])]
+
+    def add_edge(self, from_node, to_node, cost):
+        if from_node not in self.graph:
+            self.graph[from_node] = []
+        self.graph[from_node].append((to_node, cost))
+
+    def set_heuristic(self, node, h_value):
+        self.heuristic[node] = h_value
+
+    def branch_and_bound(self, start, goal):
+        heap = [(self.heuristic[start], start, [start])]  # (cost + heuristic, node, path)
         visited = set()
 
         while heap:
@@ -32,11 +35,36 @@ class Graph:
 
         return None, float('inf')
 
+
 def main():
     graph = Graph()
-    edges = int(input("Nhập số lượng cạnh: "))
-    print("Nhập từng cạnh theo syntax: start target cost")
-    for _ in range(edges):
-        startpoint, endpoint, cost = input().split()
+
+    # Đọc dữ liệu từ file
+    with open('input.txt', 'r') as file:
+        lines = file.readlines()
+
+    # Xử lý từng dòng dữ liệu
+    for line in lines:
+        from_node, to_node, cost, heuristic_start, heuristic_goal = line.split()
         cost = float(cost)
-        graph.add_edge(startpoint, endpoint, cost)
+        heuristic_start = float(heuristic_start)
+        heuristic_goal = float(heuristic_goal)
+        
+        graph.add_edge(from_node, to_node, cost)
+        graph.set_heuristic(from_node, heuristic_start)
+        graph.set_heuristic(to_node, heuristic_goal)
+
+    # Nhập đỉnh bắt đầu và đỉnh đích từ người dùng
+    start = input("Nhập đỉnh bắt đầu: ")
+    goal = input("Nhập đỉnh đích: ")
+
+    # Chạy thuật toán Branch and Bound
+    path, cost = graph.branch_and_bound(start, goal)
+
+    if path:
+        print(f"Đường đi tìm được: {' -> '.join(path)} với tổng chi phí: {cost}")
+    else:
+        print("Không tìm được đường đi.")
+
+if __name__ == "__main__":
+    main()
