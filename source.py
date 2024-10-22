@@ -1,5 +1,7 @@
 import heapq
 import time
+import networkx as nx
+import matplotlib.pyplot as plt
 
 class Graph:
     def __init__(self):
@@ -17,7 +19,7 @@ class Graph:
     def branch_and_bound(self, start, goal):
         heap = [(self.heuristic[start], start, [start])]  # (cost + heuristic, node, path)
         visited = set()
-        traversal_process = []  # Lưu quá trình duyệt
+        traversal_process = []  # Store traversal process
 
         while heap:
             current_cost, current_node, path = heapq.heappop(heap)
@@ -26,7 +28,7 @@ class Graph:
                 continue
 
             visited.add(current_node)
-            traversal_process.append(current_node)  # Thêm đỉnh hiện tại vào quá trình duyệt
+            traversal_process.append(current_node)  # Add current node to traversal process
 
             if current_node == goal:
                 return path, current_cost, traversal_process
@@ -38,14 +40,43 @@ class Graph:
 
         return None, float('inf'), traversal_process
 
+    def draw_graph(self, path, traversal_process):
+        G = nx.DiGraph()
+
+        # Add edges from the graph with weights
+        for from_node in self.graph:
+            for to_node, cost in self.graph[from_node]:
+                G.add_edge(from_node, to_node, weight=cost)
+
+        pos = nx.spring_layout(G)
+
+        # Draw the graph
+        plt.figure(figsize=(10, 7))
+        nx.draw(G, pos, with_labels=True, node_color='lightblue', node_size=3000, font_size=10, font_weight='bold')
+
+        # Draw edge labels
+        edge_labels = {(u, v): f"{d['weight']}" for u, v, d in G.edges(data=True)}
+        nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels)
+
+        # Highlight the traversal process and path
+        if traversal_process:
+            nx.draw_networkx_nodes(G, pos, nodelist=traversal_process, node_color='yellow', node_size=3000)
+        
+        if path:
+            path_edges = [(path[i], path[i+1]) for i in range(len(path)-1)]
+            nx.draw_networkx_edges(G, pos, edgelist=path_edges, edge_color='red', width=2)
+
+        plt.title("Branch and Bound Traversal and Path")
+        plt.show()
+
 def main():
     graph = Graph()
 
-    # Đọc dữ liệu từ file
+    # Read data from file
     with open('input.txt', 'r') as file:
         lines = file.readlines()
 
-    # Xử lý từng dòng dữ liệu
+    # Process each line of data
     for line in lines:
         from_node, to_node, cost, heuristic_start, heuristic_goal = line.split()
         cost = float(cost)
@@ -56,27 +87,30 @@ def main():
         graph.set_heuristic(from_node, heuristic_start)
         graph.set_heuristic(to_node, heuristic_goal)
 
-    # Nhập đỉnh bắt đầu và đỉnh đích từ người dùng
-    start = input("Nhập đỉnh bắt đầu: ")
-    goal = input("Nhập đỉnh đích: ")
+    # Enter start and goal nodes from the user
+    start = input("Enter start node: ")
+    goal = input("Enter goal node: ")
 
-    # Tính thời gian chạy thuật toán
+    # Measure the algorithm execution time
     start_time = time.time()
     
-    # Chạy thuật toán Branch and Bound
+    # Run the Branch and Bound algorithm
     path, cost, traversal_process = graph.branch_and_bound(start, goal)
     
     end_time = time.time()
     execution_time = end_time - start_time
 
-    # In kết quả
+    # Output the results
     if path:
-        print(f"Đường đi tìm được: {' -> '.join(path)}")
-        print(f"Quá trình duyệt: {' -> '.join(traversal_process)}")
-        print(f"Tổng chi phí của đường đi: {cost}")
-        print(f"Thời gian chạy thuật toán: {execution_time:.6f} giây")
+        print(f"Found path: {' -> '.join(path)}")
+        print(f"Traversal process: {' -> '.join(traversal_process)}")
+        print(f"Total path cost: {cost}")
+        print(f"Execution time: {execution_time:.20f} seconds")
     else:
-        print("Không tìm được đường đi.")
+        print("No path found.")
+
+    # Draw the graph and highlight the path
+    graph.draw_graph(path, traversal_process)
 
 if __name__ == "__main__":
     main()
