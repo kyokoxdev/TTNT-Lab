@@ -17,9 +17,9 @@ class Graph:
         self.heuristic[node] = h_value
 
     def branch_and_bound(self, start, goal):
-        heap = [(self.heuristic[start], start, [start])]  # (cost + heuristic, node, path)
+        heap = [(self.heuristic[start], start, [start])]  
         visited = set()
-        traversal_process = []  # Store traversal process
+        traversal_process = []  
 
         while heap:
             current_cost, current_node, path = heapq.heappop(heap)
@@ -28,7 +28,7 @@ class Graph:
                 continue
 
             visited.add(current_node)
-            traversal_process.append(current_node)  # Add current node to traversal process
+            traversal_process.append(current_node)  
 
             if current_node == goal:
                 return path, current_cost, traversal_process
@@ -40,7 +40,7 @@ class Graph:
 
         return None, float('inf'), traversal_process
 
-    def draw_graph(self, path, traversal_process):
+    def draw_graph_with_arrows(self, path):
         G = nx.DiGraph()
 
         # Add edges from the graph with weights
@@ -48,35 +48,33 @@ class Graph:
             for to_node, cost in self.graph[from_node]:
                 G.add_edge(from_node, to_node, weight=cost)
 
-        pos = nx.spring_layout(G)
+        # Use spring layout with increased k value for more spacing between nodes
+        pos = nx.spring_layout(G, k=1.2, seed=42)
 
-        # Draw the graph
-        plt.figure(figsize=(10, 7))
-        nx.draw(G, pos, with_labels=True, node_color='lightblue', node_size=3000, font_size=10, font_weight='bold')
+        # Draw the graph with larger nodes, thicker edges, and adjusted font size for readability
+        plt.figure(figsize=(12, 8))
+        nx.draw(G, pos, with_labels=True, node_color='lightblue', node_size=5000, font_size=14, font_weight='bold')
 
-        # Draw edge labels
+        # Draw edge labels with larger font
         edge_labels = {(u, v): f"{d['weight']}" for u, v, d in G.edges(data=True)}
-        nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels)
+        nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels, font_size=12)
 
-        # Highlight the traversal process and path
-        if traversal_process:
-            nx.draw_networkx_nodes(G, pos, nodelist=traversal_process, node_color='yellow', node_size=3000)
-        
+        # Highlight the found path with arrows and nodes in yellow
         if path:
             path_edges = [(path[i], path[i+1]) for i in range(len(path)-1)]
-            nx.draw_networkx_edges(G, pos, edgelist=path_edges, edge_color='red', width=2)
+            nx.draw_networkx_edges(G, pos, edgelist=path_edges, edge_color='red', width=3, arrowstyle='->', arrowsize=20)
+            nx.draw_networkx_nodes(G, pos, nodelist=path, node_color='yellow', node_size=5000)
 
-        plt.title("Branch and Bound Traversal and Path")
+        plt.title("Branch and Bound Found Path (With Arrows)")
         plt.show()
+
 
 def main():
     graph = Graph()
-
-    # Read data from file
+   
     with open('input.txt', 'r') as file:
         lines = file.readlines()
 
-    # Process each line of data
     for line in lines:
         from_node, to_node, cost, heuristic_start, heuristic_goal = line.split()
         cost = float(cost)
@@ -87,20 +85,16 @@ def main():
         graph.set_heuristic(from_node, heuristic_start)
         graph.set_heuristic(to_node, heuristic_goal)
 
-    # Enter start and goal nodes from the user
     start = input("Enter start node: ")
     goal = input("Enter goal node: ")
 
-    # Measure the algorithm execution time
     start_time = time.time()
     
-    # Run the Branch and Bound algorithm
     path, cost, traversal_process = graph.branch_and_bound(start, goal)
     
     end_time = time.time()
     execution_time = end_time - start_time
 
-    # Output the results
     if path:
         print(f"Found path: {' -> '.join(path)}")
         print(f"Traversal process: {' -> '.join(traversal_process)}")
@@ -109,8 +103,7 @@ def main():
     else:
         print("No path found.")
 
-    # Draw the graph and highlight the path
-    graph.draw_graph(path, traversal_process)
+    graph.draw_graph_with_arrows(path)
 
 if __name__ == "__main__":
     main()
